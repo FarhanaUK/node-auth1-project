@@ -11,6 +11,11 @@ const User = require('../users/users-model')
 */
 function restricted(req, res, next) {
   next()
+  if(req.session.user) {
+   next()
+  }else {
+    next({status: 401, message: "You shall not pass"})
+  }
 }
 
 /*
@@ -42,16 +47,20 @@ if(!users.length) {
   }
 */
 async function checkUsernameExists(req, res, next) {
-  try{
-    const users = await User.findBy({ username: req.body.username})
-    if(users.length) {
-      next()
+  try {
+    const users = await User.findBy({ username: req.body.username });
+
+    if (users.length) {
+      req.user = users[0]; // Set the user to req.user so it can be used in the login route
+      next(); // Proceed to the next middleware or route handler
+    } else {
+      next({ message: "Invalid Credentials", status: 401 }); // User not found
     }
-      else next ({ message: "Invalid Credentials", status: 401})
-    }catch(err) {
-      next(err)
-    }
+  } catch (err) {
+    next(err); // Pass any errors to the error handler
+  }
 }
+
 
 /*
   If password is missing from req.body, or if it's 3 chars or shorter
