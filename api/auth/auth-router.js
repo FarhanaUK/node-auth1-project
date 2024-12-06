@@ -64,7 +64,7 @@ User.add({ username, password: hash })
     req.session.user = req.user
     res.json({ message: `Welcome ${req.user.username}`})
    }else {
-    next({status: 401, message: "invalid credential"})
+    next({status: 401, message: "invalid credentials"})
    }
     })
 
@@ -84,7 +84,17 @@ User.add({ username, password: hash })
   }
  */
 router.get('/logout', (req,res,next)=> {
-res.json('logout')
+if(req.session.user) {
+req.session.destroy(err => {
+  if(err){
+    next()
+  } else{
+    res.json({message: "logged out"})
+  }
+})
+}else {
+  res.json({ message : "no session"})
+}
 })
  
 // Don't forget to add the router to the `exports` object so it can be required in other modules
